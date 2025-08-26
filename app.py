@@ -392,7 +392,7 @@ def seed_admin():
 
 
 if __name__ == "__main__":
-    # If using Windows, you may need to specify the path to the Tesseract executable
+    # If using Windows, may need to specify the path to the Tesseract executable
     # pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
     seed_admin()
     app.run(host="0.0.0.0", port=5000, debug=True)
