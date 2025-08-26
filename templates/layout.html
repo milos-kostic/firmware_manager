@@ -1,0 +1,16 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8" />
+<title>Firmware Manager</title>
+</head>
+<body>
+<h1>Firmware Manager</h1>
+{% if current_user.is_authenticated %}
+Logged in as {{ current_user.username }} ({{ current_user.role }}) |
+<a href="{{ url_for('logout') }}">Logout</a>
+{% endif %}
+<hr />
+{% block content %}{% endblock %}
+</body>
+</html>

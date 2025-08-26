@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Firmware Check</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    <style>
+        /* Professional styling for the search input box */
+        .search-input {
+            width: 100%;
+            padding: 12px 16px;
+            font-size: 16px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease-in-out;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #007bff;
+            box-shadow: 0 0 8px rgba(0, 123, 255, 0.3);
+        }
+
+        /* Basic styling for the dropdown suggestions */
+        .suggestions {
+            border: 1px solid #ccc;
+            border-top: none;
+            max-height: 150px;
+            overflow-y: auto;
+            position: absolute;
+            width: 100%;
+            background-color: white;
+            z-index: 10;
+            border-radius: 0 0 8px 8px;
+        }
+
+        .suggestions div {
+            padding: 10px;
+            cursor: pointer;
+            border-bottom: 1px solid #eee;
+        }
+
+        .suggestions div:hover {
+            background-color: #f1f1f1;
+        }
+
+        .autocomplete-container {
+            position: relative;
+        }
+
+        /* Color classes for firmware status */
+        .status-up-to-date {
+            color: green;
+            font-weight: bold;
+        }
+
+        .status-update-required {
+            color: red;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Firmware Manager</h1>
+            <nav>
+                {% if current_user.is_authenticated %}
+                    <a href="{{ url_for('index') }}">Home</a>
+                    <a href="{{ url_for('check_firmware') }}">Check Firmware</a>
+                    {% if current_user.role == 'admin' %}
+                        <a href="{{ url_for('admin_dashboard') }}">Admin Dashboard</a>
+                    {% endif %}
+                    <a href="{{ url_for('logout') }}">Logout</a>
+                {% else %}
+                    <a href="{{ url_for('login') }}">Login</a>
+                {% endif %}
+            </nav>
+        </header>
+
+        <main>
+            <h2>Check Your Firmware</h2>
+            <p>Manually enter your device's model and firmware version below to check if it's up to date.</p>
+
+            <form action="{{ url_for('check_firmware') }}" method="post">
+                <div class="form-group autocomplete-container">
+                    <label for="model">Device Model:</label>
+                    <input type="text" id="modelInput" name="model" class="search-input" placeholder="Search for device model..." required>
+                    <div id="suggestions" class="suggestions"></div>
+                </div>
+                <div class="form-group">
+                    <label for="installed_version">Installed Version:</label>
+                    <input type="text" id="installed_version" name="installed_version" class="search-input" placeholder="e.g., 1.0.12" required>
+                </div>
+                <button type="submit" class="btn">Check Firmware</button>
+            </form>
+
+            {% if result %}
+                <div class="result-box" style="margin-top: 20px;">
+                    {% if result.error %}
+                        <p class="error">{{ result.error }}</p>
+                    {% else %}
+                        <h3>Result for {{ result.model }}</h3>
+                        <p><strong>Manufacturer:</strong> {{ result.manufacturer }}</p>
+                        <p><strong>Installed Version:</strong> {{ result.installed }}</p>
+                        <p><strong>Latest Certified Version:</strong> {{ result.latest }}</p>
+                        <p><strong>Status:</strong>
+                            <span class="{% if result.status == 'Up to date' %}status-up-to-date{% else %}status-update-required{% endif %}">
+                                {{ result.status }}
+                            </span>
+                        </p>
+                        <p><strong>Release Date:</strong> {{ result.date }}</p>
+                    {% endif %}
+                </div>
+            {% endif %}
+        </main>
+    </div>
+
+    <script>
+        // Get the list of all device models from the server-side
+        const allDevices = [
+            {% for device in devices %}
+                "{{ device.model | safe }}",
+            {% endfor %}
+        ];
+
+        const modelInput = document.getElementById('modelInput');
+        const suggestionsContainer = document.getElementById('suggestions');
+
+        modelInput.addEventListener('keyup', function() {
+            const searchTerm = this.value.toLowerCase();
+            suggestionsContainer.innerHTML = '';
+
+            if (searchTerm.length === 0) {
+                suggestionsContainer.style.display = 'none';
+                return;
+            }
+
+            const matches = allDevices.filter(device => device.toLowerCase().includes(searchTerm));
+
+            if (matches.length > 0) {
+                suggestionsContainer.style.display = 'block';
+                matches.forEach(match => {
+                    const div = document.createElement('div');
+                    div.textContent = match;
+                    div.addEventListener('click', function() {
+                        modelInput.value = this.textContent;
+                        suggestionsContainer.style.display = 'none';
+                    });
+                    suggestionsContainer.appendChild(div);
+                });
+            } else {
+                suggestionsContainer.style.display = 'none';
+            }
+        });
+
+        // Hide suggestions when clicking outside the input
+        document.addEventListener('click', function(event) {
+            if (!modelInput.contains(event.target) && !suggestionsContainer.contains(event.target)) {
+                suggestionsContainer.style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Update Device</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    <style>
+        /* General form styling for a clean look */
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: bold;
+        }
+
+        .form-group input[type="text"],
+        .form-group input[type="date"] {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            box-sizing: border-box; /* Ensures padding doesn't affect the width */
+        }
+
+        .form-group input[type="checkbox"] {
+            margin-right: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Admin Dashboard</h1>
+            <nav>
+                <a href="{{ url_for('index') }}">Home</a>
+                <a href="{{ url_for('admin_dashboard') }}">Admin Dashboard</a>
+                <a href="{{ url_for('logout') }}">Logout</a>
+            </nav>
+        </header>
+
+        <main>
+            <h2>Update Device: {{ device.model }}</h2>
+            <form action="{{ url_for('update_device', device_id=device.id) }}" method="post">
+                <div class="form-group">
+                    <label for="manufacturer">Manufacturer:</label>
+                    <input type="text" id="manufacturer" name="manufacturer" value="{{ device.manufacturer }}" required>
+                </div>
+                <div class="form-group">
+                    <label for="model">Model:</label>
+                    <input type="text" id="model" name="model" value="{{ device.model }}" required>
+                </div>
+                <div class="form-group">
+                    <label for="version">Latest Version:</label>
+                    <input type="text" id="version" name="version" value="{{ device.latest_firmware_version }}" required>
+                </div>
+                <div class="form-group">
+                    <label for="date">Release Date:</label>
+                    <input type="date" id="date" name="date" value="{{ device.latest_firmware_date.strftime('%Y-%m-%d') }}" required>
+                </div>
+                <div class="form-group">
+                    <label for="installation_file_title">Installation File:</label>
+                    <input type="text" id="installation_file_title" name="installation_file_title" value="{{ device.installation_file_title }}" placeholder="e.g., firmware_update_v2.0.exe">
+                </div>
+                <div class="form-group">
+                    <input type="checkbox" id="is_certified" name="is_certified" {% if device.is_certified %}checked{% endif %}>
+                    <label for="is_certified">Certified Version</label>
+                </div>
+                <button type="submit" class="btn btn-primary">Update Device</button>
+            </form>
+        </main>
+    </div>
+</body>
+</html>

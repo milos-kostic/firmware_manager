@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    <style>
+        /* Table and list styling for a professional look */
+        .table-container {
+            width: 100%;
+            overflow-x: auto;
+            margin-top: 2rem;
+        }
+
+        .device-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9em;
+            font-family: 'Inter', sans-serif;
+            min-width: 400px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.05); /* Lighter, more subtle shadow */
+            border-radius: 12px;
+            overflow: hidden; /* Ensures rounded corners are applied to the whole table */
+        }
+
+        .device-table thead tr {
+            background-color: #f8f9fa; /* Light gray to match a professional theme */
+            color: #495057; /* Dark gray for better contrast and a softer look */
+            text-align: left;
+            font-weight: bold;
+        }
+
+        .device-table th,
+        .device-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #e9ecef; /* Lighter border color */
+        }
+
+        .device-table tbody tr {
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .device-table tbody tr:nth-of-type(even) {
+            background-color: #f3f3f3;
+        }
+
+        .device-table tbody tr:last-of-type {
+            border-bottom: 2px solid #ced4da; /* A professional gray for the last row */
+        }
+
+        .device-table tbody tr:hover {
+            background-color: #e9f5ff; /* Subtle blue highlight on hover */
+            transition: background-color 0.2s ease-in-out;
+        }
+
+        /* Action buttons */
+        .action-buttons form {
+            display: inline;
+        }
+
+        .action-buttons .btn {
+            padding: 6px 12px;
+            margin: 0 4px;
+            border-radius: 6px;
+        }
+
+        .btn-warning {
+            background-color: #ffc107;
+            color: black;
+        }
+
+        .btn-danger {
+            background-color: #dc3545;
+            color: white;
+        }
+
+        /* Status badges */
+        .status-certified {
+            background-color: #28a745;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.8em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Admin Dashboard</h1>
+            <nav>
+                <a href="{{ url_for('index') }}">Home</a>
+                <a href="{{ url_for('admin_dashboard') }}">Admin Dashboard</a>
+                <a href="{{ url_for('logout') }}">Logout</a>
+            </nav>
+        </header>
+
+        <main>
+            <h2>Manage Devices</h2>
+            <div class="actions">
+                <a href="{{ url_for('add_device') }}" class="btn btn-primary">Add New Device</a>
+                <a href="{{ url_for('user_management') }}" class="btn btn-primary">Manage Users</a>
+                <a href="{{ url_for('export_firmware_text') }}" class="btn btn-secondary">Export to Text</a>
+                <a href="{{ url_for('backup_database') }}" class="btn btn-secondary">Backup Database</a>
+            </div>
+
+            <div class="table-container">
+                <table class="device-table">
+                    <thead>
+                        <tr>
+                            <th>Manufacturer</th>
+                            <th>Model</th>
+                            <th>Latest Version</th>
+                            <th>Release Date</th>
+                            <th>Installation File</th>
+                            <th>Certified</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for device in devices %}
+                            <tr>
+                                <td>{{ device.manufacturer }}</td>
+                                <td>{{ device.model }}</td>
+                                <td>{{ device.latest_firmware_version }}</td>
+                                <td>{{ device.latest_firmware_date.strftime('%Y-%m-%d') }}</td>
+                                <td>{{ device.installation_file_title }}</td>
+                                <td>
+                                    {% if device.is_certified %}
+                                        <span class="status-certified">Yes</span>
+                                    {% else %}
+                                        No
+                                    {% endif %}
+                                </td>
+                                <td class="action-buttons">
+                                    <a href="{{ url_for('update_device', device_id=device.id) }}" class="btn btn-warning">Edit</a>
+                                    <form action="{{ url_for('delete_device', device_id=device.id) }}" method="post" onsubmit="return confirm('Are you sure you want to delete this device?');">
+                                        <button type="submit" class="btn btn-danger">Delete</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            {% if not devices %}
+                <p>No devices found. Add a new device to get started.</p>
+            {% endif %}
+        </main>
+    </div>
+</body>
+</html>

@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home - Firmware Manager</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    <style>
+        /* General table styling for a professional look */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            font-family: 'Inter', sans-serif;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            overflow: hidden; /* Ensures the rounded corners apply to the table content */
+        }
+        th, td {
+            border: 1px solid #e0e0e0;
+            padding: 16px;
+            text-align: left;
+        }
+        th {
+            background-color: #f8f9fa;
+            color: #495057;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.9rem;
+        }
+        tbody tr:nth-child(odd) {
+            background-color: #ffffff;
+        }
+        tbody tr:nth-child(even) {
+            background-color: #fbfbfb;
+        }
+        tbody tr:hover {
+            background-color: #e9f5ff; /* Subtle hover effect */
+            cursor: pointer;
+        }
+
+        /* Professional styling for the search input box */
+        .search-bar {
+            width: 100%; /* Ensure the container is full width */
+            margin-bottom: 20px; /* Add some space below the search bar */
+        }
+        .search-input {
+            width: 100%;
+            padding: 12px 16px;
+            font-size: 16px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease-in-out;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #007bff;
+            box-shadow: 0 0 8px rgba(0, 123, 255, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Firmware Manager</h1>
+            <nav>
+                {% if current_user.is_authenticated %}
+                    <a href="{{ url_for('index') }}">Home</a>
+                    <a href="{{ url_for('check_firmware') }}">Check Firmware</a>
+                    {% if current_user.role == 'admin' %}
+                        <a href="{{ url_for('admin_dashboard') }}">Admin Dashboard</a>
+                    {% endif %}
+                    <a href="{{ url_for('logout') }}">Logout</a>
+                {% else %}
+                    <a href="{{ url_for('login') }}">Login</a>
+                {% endif %}
+            </nav>
+        </header>
+
+        <main>
+            <h2>Certified Firmware</h2>
+            <div class="search-bar">
+                <input type="text" id="searchInput" class="search-input" placeholder="Search by Model or Manufacturer...">
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Manufacturer</th>
+                        <th>Model</th>
+                        <th>Latest Firmware Version</th>
+                        <th>Installation File</th>
+                        <th>Release Date</th>
+                        <th>Certified</th>
+                    </tr>
+                </thead>
+                <tbody id="deviceTableBody">
+                    {% for device in devices | sort(attribute='manufacturer') %}
+                        <tr>
+                            <td class="manufacturer">{{ device.manufacturer }}</td>
+                            <td class="model">{{ device.model }}</td>
+                            <td>
+                                <!-- Apply a gray color if the device is not certified -->
+                                <span {% if not device.is_certified %}style="color: #6c757d;"{% endif %}>
+                                    {{ device.latest_firmware_version }}
+                                </span>
+                            </td>
+                            <td>{{ device.installation_file_title }}</td>
+                            <td>{{ device.latest_firmware_date.strftime('%Y-%m-%d') }}</td>
+                            <td>{{ "Yes" if device.is_certified else "No" }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </main>
+    </div>
+
+    <script>
+        // Get references to the input and table body
+        const searchInput = document.getElementById('searchInput');
+        const deviceTableBody = document.getElementById('deviceTableBody');
+
+        // Add an event listener to the search input for the 'keyup' event
+        searchInput.addEventListener('keyup', function(event) {
+            const searchTerm = event.target.value.toLowerCase();
+
+            // Re-fetch all rows, including the new group headers
+            const allRows = deviceTableBody.querySelectorAll('tr');
+
+            allRows.forEach(row => {
+                // Get the text from the manufacturer and model columns for non-group rows
+                const manufacturerText = row.querySelector('.manufacturer').textContent.toLowerCase();
+                const modelText = row.querySelector('.model').textContent.toLowerCase();
+
+                if (manufacturerText.includes(searchTerm) || modelText.includes(searchTerm)) {
+                    row.style.display = 'table-row';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        });
+    </script>
+</body>
+</html>
